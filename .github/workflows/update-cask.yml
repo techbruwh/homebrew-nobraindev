@@ -1,0 +1,58 @@
+name: Update Cask
+
+on:
+  repository_dispatch:
+    types: [update-cask]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to update to (e.g., 0.1.0)'
+        required: true
+      arm_sha:
+        description: 'SHA256 for ARM64 build'
+        required: true
+      intel_sha:
+        description: 'SHA256 for Intel build'
+        required: true
+
+jobs:
+  update-cask:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update cask formula
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          ARM_SHA="${{ github.event.inputs.arm_sha }}"
+          INTEL_SHA="${{ github.event.inputs.intel_sha }}"
+          
+          # Update version and checksums in the cask file
+          sed -i '' \
+            -e "s/version \".*\"/version \"$VERSION\"/" \
+            -e "s/sha256 arm:.*\".*\"/sha256 arm:   \"$ARM_SHA\"/" \
+            -e "s/intel:.*\".*\"/       intel: \"$INTEL_SHA\"/" \
+            Casks/nobraindev.rb
+
+      - name: Run brew audit
+        run: |
+          brew tap techbruwh/nobraindev $GITHUB_WORKSPACE
+          brew audit --cask --strict techbruwh/nobraindev/nobraindev
+
+      - name: Run brew style
+        run: brew style --fix Casks/nobraindev.rb
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "Update NoBrainDev to v${{ github.event.inputs.version }}"
+          title: "Update NoBrainDev to v${{ github.event.inputs.version }}"
+          body: |
+            Updates NoBrainDev to version ${{ github.event.inputs.version }}
+            
+            - Updated version number
+            - Updated SHA256 checksums for both architectures
+            - Passed `brew audit` check
+            - Applied style fixes
+          branch: update-cask
+          delete-branch: true
