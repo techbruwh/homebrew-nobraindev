@@ -26,13 +26,13 @@ jobs:
 
       - name: Update cask formula
         run: |
-          VERSION="${{ github.event.inputs.version }}"
-          ARM_SHA="${{ github.event.inputs.arm_sha }}"
-          INTEL_SHA="${{ github.event.inputs.intel_sha }}"
+          VERSION="${{ github.event.inputs.version || github.event.client_payload.version }}"
+          ARM_SHA="${{ github.event.inputs.arm_sha || github.event.client_payload.arm_sha }}"
+          INTEL_SHA="${{ github.event.inputs.intel_sha || github.event.client_payload.intel_sha }}"
           
           cat > Casks/nobraindev.rb << EOL
           cask "nobraindev" do
-            version "$VERSION"
+            version "${VERSION}"
           
             on_arm do
               url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_aarch64.dmg"
@@ -76,8 +76,8 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.WORKFLOW_TOKEN }}
-          commit-message: "Update NoBrainDev to v${{ github.event.inputs.version }}"
-          title: "Update NoBrainDev to v${{ github.event.inputs.version }}"
+          commit-message: "Update NoBrainDev to v${{ github.event.inputs.version || github.event.client_payload.version }}"
+          title: "Update NoBrainDev to v${{ github.event.inputs.version || github.event.client_payload.version }}"
           body: |
             Updates NoBrainDev to version ${{ github.event.inputs.version }}
             
