@@ -39,6 +39,8 @@ sha256 arm:   "abc123...",  # ← Paste aarch64 SHA256 here
 ### 4. Test the Formula
 
 ```bash
+brew tap techbruwh/nobraindev /Users/faisalmorensya/app/techbruwh/homebrew-nobraindev
+
 # Check syntax
 brew audit --cask --strict Casks/nobraindev.rb
 
