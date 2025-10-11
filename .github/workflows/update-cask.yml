@@ -18,6 +18,9 @@ on:
 jobs:
   update-cask:
     runs-on: macos-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -72,6 +75,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
+          token: ${{ secrets.WORKFLOW_TOKEN }}
           commit-message: "Update NoBrainDev to v${{ github.event.inputs.version }}"
           title: "Update NoBrainDev to v${{ github.event.inputs.version }}"
           body: |
@@ -83,3 +87,5 @@ jobs:
             - Applied style fixes
           branch: update-cask
           delete-branch: true
+          committer: GitHub Action <action@github.com>
+          author: GitHub Action <action@github.com>
