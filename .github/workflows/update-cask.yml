@@ -27,12 +27,39 @@ jobs:
           ARM_SHA="${{ github.event.inputs.arm_sha }}"
           INTEL_SHA="${{ github.event.inputs.intel_sha }}"
           
-          # Update version and checksums in the cask file
-          sed -i '' \
-            -e "s/version \".*\"/version \"$VERSION\"/" \
-            -e "s/sha256 arm:.*\".*\"/sha256 arm:   \"$ARM_SHA\"/" \
-            -e "s/intel:.*\".*\"/       intel: \"$INTEL_SHA\"/" \
-            Casks/nobraindev.rb
+          cat > Casks/nobraindev.rb << EOL
+          cask "nobraindev" do
+            version "$VERSION"
+          
+            on_arm do
+              url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_aarch64.dmg"
+              sha256 "$ARM_SHA"
+            end
+          
+            on_intel do
+              url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_x64.dmg"
+              sha256 "$INTEL_SHA"
+            end
+          
+            name "NoBrainDev"
+            desc "AI-powered code snippet manager with semantic search"
+            homepage "https://github.com/techbruwh/nobraindev"
+          
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+          
+            app "NoBrainDev.app", target: "No Brain Dev.app"
+          
+            zap trash: [
+              "~/.local/share/nobraindev",
+              "~/Library/Application Support/com.techbruwh.nobraindev",
+              "~/Library/Caches/com.techbruwh.nobraindev",
+              "~/Library/Preferences/com.techbruwh.nobraindev.plist",
+            ]
+          end
+          EOL
 
       - name: Run brew audit
         run: |
