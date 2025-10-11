@@ -3,7 +3,8 @@ cask "nobraindev" do
   
   arch arm: "aarch64", intel: "x64"
 
-  url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{arch}.dmg"
+  url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_#{arch}.dmg",
+      verified: "github.com/techbruwh/nobraindev/"
   sha256 arm:   "9e2476ac2bcca850621984a494336b2569749e104f0d639b785462ff762cf571",
          intel: "674307eae2572332a2edde06011125f51b8763ed5fddfa16a0e1a43946c2cb79"
   

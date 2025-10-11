@@ -13,7 +13,7 @@ cd ~/Downloads
 
 # Download both architectures
 wget https://github.com/techbruwh/nobraindev/releases/download/v0.1.0/NoBrainDev_0.1.0_aarch64.dmg
-wget https://github.com/techbruwh/nobraindev/releases/download/v0.1.0/NoBrainDev_x64.dmg
+wget https://github.com/techbruwh/nobraindev/releases/download/v0.1.0/NoBrainDev_0.1.0_x64.dmg
 ```
 
 ### 2. Calculate SHA256 Checksums
