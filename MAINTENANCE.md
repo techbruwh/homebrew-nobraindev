@@ -42,7 +42,7 @@ sha256 arm:   "abc123...",  # ← Paste aarch64 SHA256 here
 brew tap techbruwh/nobraindev /Users/faisalmorensya/app/techbruwh/homebrew-nobraindev
 
 # Check syntax
-brew audit --cask --strict Casks/nobraindev.rb
+brew audit --cask --strict techbruwh/nobraindev/nobraindev
 
 # Fix style issues
 brew style --fix Casks/nobraindev.rb
