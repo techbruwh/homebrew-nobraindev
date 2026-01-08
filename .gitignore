@@ -1,14 +1,10 @@
+# DMG files (used for testing)
+*.dmg
+
 # macOS
 .DS_Store
 
-# Editor
-.vscode/
-.idea/
+# Temporary files
+*.tmp
 *.swp
-*.swo
 *~
-
-# Test files
-*.dmg
-*.pkg
-

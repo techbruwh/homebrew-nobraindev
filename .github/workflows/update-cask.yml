@@ -1,60 +1,92 @@
-name: Update Cask
+name: Update Homebrew Cask
 
 on:
-  repository_dispatch:
-    types: [update-cask]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to update to (e.g., 0.1.0)'
+        description: 'Version number (e.g., 0.2.6)'
         required: true
-      arm_sha:
-        description: 'SHA256 for ARM64 build'
-        required: true
-      intel_sha:
-        description: 'SHA256 for Intel build'
-        required: true
+        type: string
+  repository_dispatch:
+    types: [new-release]
 
 jobs:
   update-cask:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
+      
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Update cask formula
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set version
+        id: version
         run: |
-          VERSION="${{ github.event.inputs.version || github.event.client_payload.version }}"
-          ARM_SHA="${{ github.event.inputs.arm_sha || github.event.client_payload.arm_sha }}"
-          INTEL_SHA="${{ github.event.inputs.intel_sha || github.event.client_payload.intel_sha }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "VERSION=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          fi
           
-          cat > Casks/nobraindev.rb << EOL
+      - name: Download DMG files
+        id: download
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          echo "Downloading NoBrainDev v${VERSION}..."
+          
+          AARCH64_FILE="NoBrainDev_${VERSION}_aarch64.dmg"
+          X64_FILE="NoBrainDev_${VERSION}_x64.dmg"
+          
+          AARCH64_URL="https://github.com/techbruwh/nobraindev/releases/download/v${VERSION}/${AARCH64_FILE}"
+          X64_URL="https://github.com/techbruwh/nobraindev/releases/download/v${VERSION}/${X64_FILE}"
+          
+          # Download files
+          curl -L -f -o "$AARCH64_FILE" "$AARCH64_URL"
+          curl -L -f -o "$X64_FILE" "$X64_URL"
+          
+          # Calculate SHA256
+          AARCH64_SHA=$(sha256sum "$AARCH64_FILE" | awk '{print $1}')
+          X64_SHA=$(sha256sum "$X64_FILE" | awk '{print $1}')
+          
+          echo "AARCH64_SHA=${AARCH64_SHA}" >> $GITHUB_OUTPUT
+          echo "X64_SHA=${X64_SHA}" >> $GITHUB_OUTPUT
+          
+          echo "✓ aarch64 SHA256: ${AARCH64_SHA}"
+          echo "✓ x64 SHA256: ${X64_SHA}"
+          
+      - name: Update cask file
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          AARCH64_SHA="${{ steps.download.outputs.AARCH64_SHA }}"
+          X64_SHA="${{ steps.download.outputs.X64_SHA }}"
+          
+          cat > Casks/nobraindev.rb << 'EOF'
           cask "nobraindev" do
-            version "${VERSION}"
-          
+            version "VERSION_PLACEHOLDER"
+
             on_arm do
+              sha256 "AARCH64_SHA_PLACEHOLDER"
+
               url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_aarch64.dmg"
-              sha256 "$ARM_SHA"
             end
-          
             on_intel do
+              sha256 "X64_SHA_PLACEHOLDER"
+
               url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_x64.dmg"
-              sha256 "$INTEL_SHA"
             end
-          
+
             name "NoBrainDev"
             desc "AI-powered code snippet manager with semantic search"
             homepage "https://github.com/techbruwh/nobraindev"
-          
+
             livecheck do
               url :url
               strategy :github_latest
             end
-          
+
             app "NoBrainDev.app", target: "No Brain Dev.app"
-          
+
             zap trash: [
               "~/.local/share/nobraindev",
               "~/Library/Application Support/com.techbruwh.nobraindev",
@@ -62,30 +94,37 @@ jobs:
               "~/Library/Preferences/com.techbruwh.nobraindev.plist",
             ]
           end
-          EOL
-
-      - name: Run brew audit
+          EOF
+          
+          # Replace placeholders
+          sed -i "s/VERSION_PLACEHOLDER/${VERSION}/" Casks/nobraindev.rb
+          sed -i "s/AARCH64_SHA_PLACEHOLDER/${AARCH64_SHA}/" Casks/nobraindev.rb
+          sed -i "s/X64_SHA_PLACEHOLDER/${X64_SHA}/" Casks/nobraindev.rb
+          
+          echo "✓ Updated Casks/nobraindev.rb"
+          cat Casks/nobraindev.rb
+          
+      - name: Commit and push changes
         run: |
-          brew tap techbruwh/nobraindev $GITHUB_WORKSPACE
-          brew audit --cask --strict techbruwh/nobraindev/nobraindev
-
-      - name: Run brew style
-        run: brew style --fix Casks/nobraindev.rb
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.WORKFLOW_TOKEN }}
-          commit-message: "Update NoBrainDev to v${{ github.event.inputs.version || github.event.client_payload.version }}"
-          title: "Update NoBrainDev to v${{ github.event.inputs.version || github.event.client_payload.version }}"
-          body: |
-            Updates NoBrainDev to version ${{ github.event.inputs.version }}
-            
-            - Updated version number
-            - Updated SHA256 checksums for both architectures
-            - Passed `brew audit` check
-            - Applied style fixes
-          branch: update-cask
-          delete-branch: true
-          committer: GitHub Action <action@github.com>
-          author: GitHub Action <action@github.com>
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add Casks/nobraindev.rb
+          git commit -m "Update NoBrainDev to v${VERSION}"
+          git push
+          
+      - name: Summary
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          echo "## ✓ Cask Updated Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${VERSION}" >> $GITHUB_STEP_SUMMARY
+          echo "**aarch64 SHA256:** \`${{ steps.download.outputs.AARCH64_SHA }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**x64 SHA256:** \`${{ steps.download.outputs.X64_SHA }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Users can now upgrade with:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "brew upgrade nobraindev" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
