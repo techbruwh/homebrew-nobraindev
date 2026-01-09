@@ -1,13 +1,13 @@
 cask "nobraindev" do
-  version "1.0.10"
+  version "1.0.12"
 
   on_arm do
-    sha256 "cb4f939ce961e8f85c372faf517b778cc0fe96e4d3b68245266d5bca1cd8c839"
+    sha256 "4277e52dab5caaf25a24ba9295c8d4a7313dd680fade4176f7fed26c9f195fb1"
 
     url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_aarch64.dmg"
   end
   on_intel do
-    sha256 "a4698573e037f481bef26abeb85953f269c22a9076276828dd00fae5e2fcc9e1"
+    sha256 "5245ede1ccaa266460ab811d208e5f241977b10c489c80cd17209694305e8dae"
 
     url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_x64.dmg"
   end
@@ -21,7 +21,7 @@ cask "nobraindev" do
     strategy :github_latest
   end
 
-  app "NoBrainDev.app", target: "NoBrainDev.app"
+  app "NoBrainDev.app", target: "No Brain Dev.app"
 
   zap trash: [
     "~/.local/share/nobraindev",
