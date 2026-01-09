@@ -21,7 +21,7 @@ cask "nobraindev" do
     strategy :github_latest
   end
 
-  app "NoBrainDev.app", target: "No Brain Dev.app"
+  app "NoBrainDev.app", target: "NoBrainDev.app"
 
   zap trash: [
     "~/.local/share/nobraindev",
