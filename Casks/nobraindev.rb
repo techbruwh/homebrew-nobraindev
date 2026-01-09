@@ -1,13 +1,13 @@
 cask "nobraindev" do
-  version "1.0.16"
+  version "1.0.17"
 
   on_arm do
-    sha256 "8ef4a8073498248a0d494fe654e09d67f397b7a298a7f0735c1d58055bdbab15"
+    sha256 "4a951b2cb11a88cda20bdcd6e506521ab39f251bf72ce0d31fdf5624bb614719"
 
     url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_aarch64.dmg"
   end
   on_intel do
-    sha256 "3f1ad404e1e0fd3c27e3b961e461536f863abe361c8dabbb96bc5915e9aaea6b"
+    sha256 "bcf203beaba3489e0ce18d31c0c810db2efebcddb69a326b23255a5ee2b5d270"
 
     url "https://github.com/techbruwh/nobraindev/releases/download/v#{version}/NoBrainDev_#{version}_x64.dmg"
   end
